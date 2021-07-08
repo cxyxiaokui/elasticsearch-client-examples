@@ -1,6 +1,7 @@
-package cn.zhuoqianmingyue.es.index;
+package cn.zhuoqianmingyue.es.document;
 
 import cn.zhuoqianmingyue.es.Application;
+import cn.zhuoqianmingyue.es.index.RestHighLevelClientIndexApiTest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;

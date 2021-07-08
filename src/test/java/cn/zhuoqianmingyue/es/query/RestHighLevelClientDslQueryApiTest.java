@@ -1,7 +1,8 @@
-package cn.zhuoqianmingyue.es.index;
+package cn.zhuoqianmingyue.es.query;
 
 import cn.hutool.core.map.MapUtil;
 import cn.zhuoqianmingyue.es.Application;
+import cn.zhuoqianmingyue.es.index.RestHighLevelClientIndexApiTest;
 import com.alibaba.fastjson.JSON;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;

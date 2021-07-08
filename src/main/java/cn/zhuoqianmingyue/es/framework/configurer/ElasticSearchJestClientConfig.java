@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ElasticSearchJestClientConfig {
 
-    @Value("${spring.elasticsearch.nodes:127.0.0.1:9200}")
+    @Value("${spring.elasticsearch.nodes:http://127.0.0.1:9200}")
     private String nodes;
 
     @Bean
