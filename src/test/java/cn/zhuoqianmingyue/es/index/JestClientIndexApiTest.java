@@ -4,8 +4,6 @@ import cn.zhuoqianmingyue.es.Application;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.Cat;
-import io.searchbox.core.Search;
-import io.searchbox.core.SearchResult;
 import io.searchbox.indices.CreateIndex;
 import io.searchbox.indices.DeleteIndex;
 import io.searchbox.indices.mapping.GetMapping;
@@ -121,23 +119,5 @@ public class JestClientIndexApiTest {
     public void deleteIndexTest() throws IOException {
         JestResult jestResult = jestClient.execute(new DeleteIndex.Builder("zhuoqianmingyue_test").build());
         Assert.assertTrue(jestResult.isSucceeded());
-    }
-
-    /**
-     * 发送ES 原生 DSL 查询
-     *
-     * @return SearchResult
-     * @author lijk
-     * @date 2021/06/07 14:19
-     **/
-    public SearchResult jsonSearch(String jsonStr, String indexName, String typeName) {
-        Search search = new Search.Builder(jsonStr).addIndex(indexName).addType(typeName).build();
-        try {
-            return jestClient.execute(search);
-        } catch (Exception e) {
-            log.error("jsonSearch 获取数据异常, jsonStr={} indexName={} typeName{}", jsonStr, indexName, typeName, e);
-        }
-
-        return null;
     }
 }
