@@ -1,10 +1,16 @@
 package cn.zhuoqianmingyue.es.index;
 
+import cn.hutool.core.map.MapUtil;
 import cn.zhuoqianmingyue.es.Application;
+import com.alibaba.fastjson.JSON;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -28,7 +34,7 @@ import java.util.Map;
 
 /**
  * RestHightLevelClientQueryApiTest
- *
+ * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/7.x/java-rest-high.html
  * @author lijk
  * @date 2021/07/07
  **/
@@ -49,10 +55,13 @@ public class RestHighLevelClientDslQueryApiTest {
      */
     @Test
     public void matchAllQueryTest() throws IOException {
+
         // 搜索请求对象
         SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+
+        //设置要显示的字段
         searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
         searchRequest.source(searchSourceBuilder);
 
@@ -78,9 +87,15 @@ public class RestHighLevelClientDslQueryApiTest {
         // 搜索请求对象
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+
+        //设置要显示的字段
         searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
-        int page = 2; // 页码
-        int size = 2; // 每页显示的条数
+
+        //设置分页的from to
+        // 页码
+        int page = 2;
+        // 每页显示的条数
+        int size = 2;
         int index = (page - 1) * size;
         searchSourceBuilder.from(index);
         searchSourceBuilder.size(size);
@@ -249,5 +264,71 @@ public class RestHighLevelClientDslQueryApiTest {
             });
             log.info("id:{} ,sourceAsString:{}", id, hit.getSourceAsString());
         }
+    }
+
+    @Test
+    public void initTestDate() throws IOException {
+        BulkRequest bulkRequest = new BulkRequest();
+        IndexRequest request0 = new IndexRequest("zhuoqianmingyue_test");
+        request0.id("1");
+        Map<Object, Object> build0 = MapUtil.builder()
+                .put("name", "Bootstrap高级开发")
+                .put("price", "29")
+                .put("studymodel", "online")
+                .put("create_date", "2012-09-01 00:00:00")
+                .put("description", "Bootstrap 前端开发框架").build();
+        String jsonString = JSON.toJSONString(build0);
+        request0.source(jsonString, XContentType.JSON);
+        bulkRequest.add(request0);
+
+        IndexRequest request1 = new IndexRequest("zhuoqianmingyue_test");
+        request1.id("2");
+        Map<Object, Object> build1 = MapUtil.builder()
+                .put("name", "Java 高级开发")
+                .put("price", "28")
+                .put("studymodel", "offline")
+                .put("create_date", "2012-09-01 00:00:00")
+                .put("description", "Java 高级课程").build();
+        String jsonString1 = JSON.toJSONString(build1);
+        request1.source(jsonString1, XContentType.JSON);
+        bulkRequest.add(request1);
+
+        IndexRequest request2 = new IndexRequest("zhuoqianmingyue_test");
+        request2.id("3");
+        Map<Object, Object> build2 = MapUtil.builder()
+                .put("name", "Java 中级课程")
+                .put("price", "29")
+                .put("studymodel", "offline")
+                .put("create_date", "2012-09-01 00:00:00")
+                .put("description", "Java 中级开发").build();
+        String jsonString2 = JSON.toJSONString(build2);
+        request2.source(jsonString2, XContentType.JSON);
+        bulkRequest.add(request2);
+
+        IndexRequest request3 = new IndexRequest("zhuoqianmingyue_test");
+        request3.id("4");
+        Map<Object, Object> build3 = MapUtil.builder()
+                .put("name", "PHP 中级开发")
+                .put("price", "27")
+                .put("studymodel", "online")
+                .put("create_date", "2012-09-01 00:00:00")
+                .put("description", "PHP 中级开发").build();
+        String jsonString3 = JSON.toJSONString(build3);
+        request3.source(jsonString3, XContentType.JSON);
+        bulkRequest.add(request3);
+
+        IndexRequest request4 = new IndexRequest("zhuoqianmingyue_test");
+        request4.id("5");
+        Map<Object, Object> build4 = MapUtil.builder()
+                .put("name", "Java 初级开发")
+                .put("price", "28")
+                .put("studymodel", "online")
+                .put("create_date", "2012-09-01 00:00:00")
+                .put("description", "Java 初级开发").build();
+        String jsonString4 = JSON.toJSONString(build4);
+        request4.source(jsonString4, XContentType.JSON);
+        bulkRequest.add(request4);
+
+        BulkResponse bulk = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
     }
 }
