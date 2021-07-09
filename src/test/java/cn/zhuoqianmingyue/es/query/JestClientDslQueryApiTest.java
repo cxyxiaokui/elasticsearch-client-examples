@@ -1,13 +1,19 @@
 package cn.zhuoqianmingyue.es.query;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.zhuoqianmingyue.es.Application;
 import cn.zhuoqianmingyue.es.index.RestHighLevelClientIndexApiTest;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.searchbox.client.JestClient;
+import io.searchbox.client.JestResult;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import io.searchbox.core.SearchScroll;
+import io.searchbox.params.Parameters;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -276,5 +282,104 @@ public class JestClientDslQueryApiTest {
             list.add(hitToSource(hit, clazz));
         }
         return list;
+    }
+
+    /**
+     * searchAfter
+     * https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html
+     *
+     * @throws IOException
+     */
+    @Test
+    public void searchAfterQueryTest() throws IOException {
+
+        // 搜索请求对象
+        SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(2);
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        searchSourceBuilder.sort("_id", SortOrder.DESC);
+        //设置要显示的字段
+        searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
+        searchRequest.source(searchSourceBuilder);
+
+        String queryString = searchSourceBuilder.toString();
+        SearchResult searchResult = jsonSearch(queryString, "zhuoqianmingyue_test", "_doc");
+        // 搜索结果
+        List<SearchResult.Hit<JSONObject, Void>> hits = searchResult.getHits(JSONObject.class);
+
+
+        while (CollectionUtil.isNotEmpty(hits)) {
+            for (SearchResult.Hit hit : hits) {
+                JSONObject object = (JSONObject) hit.source;
+                log.info(object.toString());
+            }
+            SearchResult.Hit<JSONObject, Void> jsonObjectVoidHit = hits.get(hits.size() - 1);
+            List<String> sort = jsonObjectVoidHit.sort;
+            hits = searchAfter(sort.toArray());
+        }
+    }
+
+    /**
+     * searchAfter 的查询
+     *
+     * @param sortValues 最后一个排序的值
+     * @return SearchHits
+     * @throws IOException
+     */
+    public List<SearchResult.Hit<JSONObject, Void>> searchAfter(Object[] sortValues) throws IOException {
+        // 搜索请求对象
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(2);
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        searchSourceBuilder.sort("_id", SortOrder.DESC);
+        searchSourceBuilder.searchAfter(sortValues);
+        //设置要显示的字段
+        searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
+        String queryString = searchSourceBuilder.toString();
+        SearchResult searchResult = jsonSearch(queryString, "zhuoqianmingyue_test", "_doc");
+
+        return searchResult.getHits(JSONObject.class);
+    }
+
+    @Test
+    public void scrollQueryTest() throws IOException {
+
+        // 搜索请求对象
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(2);
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+
+        Search search = new Search
+                .Builder(searchSourceBuilder.toString())
+                .addIndex("zhuoqianmingyue_test")
+                .addType("_doc")
+                .setParameter(Parameters.SCROLL, "10m")
+                .build();
+
+        JestResult searchResult = jestClient.execute(search);
+        List<JSONObject> hits = searchResult.getSourceAsObjectList(JSONObject.class);
+
+
+        while (CollectionUtil.isNotEmpty(hits)) {
+            for (JSONObject hit : hits) {
+                log.info(hit.toString());
+            }
+            String scrollId = searchResult.getJsonObject().get("_scroll_id").getAsString();
+            searchResult = scroll(scrollId);
+            hits = searchResult.getSourceAsObjectList(JSONObject.class);
+        }
+    }
+
+    /**
+     * scroll 的查询
+     *
+     * @param scrollId 最后一个排序的值
+     * @return SearchHits
+     * @throws IOException
+     */
+    public JestResult scroll(String scrollId) throws IOException {
+        SearchScroll scroll = new SearchScroll.Builder(scrollId, "10m").build();
+        return  jestClient.execute(scroll);
     }
 }

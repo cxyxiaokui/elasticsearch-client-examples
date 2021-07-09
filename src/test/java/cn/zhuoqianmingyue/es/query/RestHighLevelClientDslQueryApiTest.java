@@ -1,6 +1,8 @@
 package cn.zhuoqianmingyue.es.query;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.zhuoqianmingyue.es.Application;
 import cn.zhuoqianmingyue.es.index.RestHighLevelClientIndexApiTest;
 import com.alibaba.fastjson.JSON;
@@ -9,13 +11,16 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -51,7 +56,29 @@ public class RestHighLevelClientDslQueryApiTest {
      * 查询全部 matchAll
      * <p>
      * 文档：https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-all-query.html
-     *
+     *{
+     *   "query": {
+     *     "match_all": {
+     *       "boost": 1.0
+     *     }
+     *   },
+     *   "_source": {
+     *     "includes": [
+     *       "name",
+     *       "studymodel",
+     *       "price",
+     *       "create_date"
+     *     ],
+     *     "excludes": [ ]
+     *   },
+     *   "sort": [
+     *     {
+     *       "_id": {
+     *         "order": "desc"
+     *       }
+     *     }
+     *   ]
+     * }
      * @throws IOException
      */
     @Test
@@ -61,7 +88,7 @@ public class RestHighLevelClientDslQueryApiTest {
         SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
-
+        searchSourceBuilder.sort("_id", SortOrder.DESC);
         //设置要显示的字段
         searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
         searchRequest.source(searchSourceBuilder);
@@ -81,6 +108,31 @@ public class RestHighLevelClientDslQueryApiTest {
      * 分页文档：https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html
      * 排序文档：https://www.elastic.co/guide/en/elasticsearch/reference/current/sort-search-results.html
      *
+     * {
+     *   "from": 2,
+     *   "size": 2,
+     *   "query": {
+     *     "match_all": {
+     *       "boost": 1.0
+     *     }
+     *   },
+     *   "_source": {
+     *     "includes": [
+     *       "name",
+     *       "studymodel",
+     *       "price",
+     *       "create_date"
+     *     ],
+     *     "excludes": [ ]
+     *   },
+     *   "sort": [
+     *     {
+     *       "_id": {
+     *         "order": "desc"
+     *       }
+     *     }
+     *   ]
+     * }
      * @throws IOException
      */
     @Test
@@ -331,5 +383,103 @@ public class RestHighLevelClientDslQueryApiTest {
         bulkRequest.add(request4);
 
         BulkResponse bulk = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+    }
+
+    /**
+     * searchAfter
+     * https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html
+     * @throws IOException
+     */
+    @Test
+    public void searchAfterQueryTest() throws IOException {
+
+        // 搜索请求对象
+        SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(2);
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        searchSourceBuilder.sort("_id", SortOrder.DESC);
+        //设置要显示的字段
+        searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
+        searchRequest.source(searchSourceBuilder);
+
+        //ES发起http请求
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        // 搜索结果
+        SearchHits hits = searchResponse.getHits();
+        SearchHit[] hitsArray = hits.getHits();
+        while (ArrayUtil.isNotEmpty(hitsArray)){
+            for (SearchHit hit : hitsArray) {
+                log.info(hit.getSourceAsString());
+            }
+            Object[] sortValues = hitsArray[hitsArray.length - 1].getSortValues();
+            SearchHits searchHits = searchAfter(sortValues);
+            hitsArray = searchHits.getHits();
+        }
+    }
+
+    /**
+     * searchAfter 的查询
+     * @param sortValues 最后一个排序的值
+     * @return SearchHits
+     * @throws IOException
+     */
+    public SearchHits searchAfter(Object[] sortValues) throws IOException {
+        // 搜索请求对象
+        SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(2);
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        searchSourceBuilder.sort("_id", SortOrder.DESC);
+        searchSourceBuilder.searchAfter(sortValues);
+        //设置要显示的字段
+        searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
+        searchRequest.source(searchSourceBuilder);
+
+        //ES发起http请求
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        return searchResponse.getHits();
+    }
+
+    @Test
+    public void scrollQueryTest() throws IOException {
+
+        // 搜索请求对象
+        SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.size(2);
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        //设置要显示的字段
+        searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "create_date"}, new String[]{});
+        searchRequest.source(searchSourceBuilder);
+        searchRequest.scroll(TimeValue.timeValueMillis(500L));
+        //ES发起http请求
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        // 搜索结果
+        SearchHits hits = searchResponse.getHits();
+        SearchHit[] hitsArray = hits.getHits();
+        while (ArrayUtil.isNotEmpty(hitsArray)){
+            for (SearchHit hit : hitsArray) {
+                log.info(hit.getSourceAsString());
+            }
+
+            searchResponse = scroll(searchResponse.getScrollId());
+            hitsArray = searchResponse.getHits().getHits();
+        }
+    }
+
+    /**
+     * scroll 的查询
+     * @param scrollId 最后一个排序的值
+     * @return SearchHits
+     * @throws IOException
+     */
+    public SearchResponse scroll(String scrollId) throws IOException {
+        SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId);
+        scrollRequest.scroll(TimeValue.timeValueMillis(500L));
+
+        SearchResponse searchScrollResponse = restHighLevelClient.scroll(scrollRequest, RequestOptions.DEFAULT);
+
+        return searchScrollResponse;
     }
 }
