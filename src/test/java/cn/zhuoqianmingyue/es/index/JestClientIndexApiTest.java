@@ -43,14 +43,14 @@ public class JestClientIndexApiTest {
      */
     @Test
     public void queryIndexTest() throws IOException {
-        Cat cat = new Cat.IndicesBuilder().addIndex("imooc_test").build();
+        Cat cat = new Cat.IndicesBuilder().addIndex("zhuoqianmingyue_test").build();
         JestResult jestResult = jestClient.execute(cat);
 
-        GetMapping getMapping = new GetMapping.Builder().addIndex("imooc_test").build();
+        GetMapping getMapping = new GetMapping.Builder().addIndex("zhuoqianmingyue_test").build();
         JestResult resultMapping = jestClient.execute(getMapping);
         Assert.assertTrue(resultMapping.isSucceeded());
 
-        JestResult jestResultSetting = jestClient.execute(new GetSettings.Builder().addIndex("imooc_test").build());
+        JestResult jestResultSetting = jestClient.execute(new GetSettings.Builder().addIndex("zhuoqianmingyue_test").build());
         Assert.assertTrue(jestResultSetting.isSucceeded());
     }
 
@@ -111,7 +111,7 @@ public class JestClientIndexApiTest {
 
         String settings = Settings.builder().put("number_of_shards", "1").put("number_of_replicas", "0").build().toString();
 
-        CreateIndex createIndex = new CreateIndex.Builder("imooc_test").settings(settings).mappings(mapping).build();
+        CreateIndex createIndex = new CreateIndex.Builder("zhuoqianmingyue_test").settings(settings).mappings(mapping).build();
         JestResult jestResult = jestClient.execute(createIndex);
         Assert.assertTrue(jestResult.isSucceeded());
     }
@@ -125,7 +125,7 @@ public class JestClientIndexApiTest {
      */
     @Test
     public void deleteIndexTest() throws IOException {
-        JestResult jestResult = jestClient.execute(new DeleteIndex.Builder("imooc_test").build());
+        JestResult jestResult = jestClient.execute(new DeleteIndex.Builder("zhuoqianmingyue_test").build());
         Assert.assertTrue(jestResult.isSucceeded());
     }
 }

@@ -16,10 +16,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -209,12 +206,56 @@ public class RestHighLevelClientDslQueryApiTest {
         }
     }
 
+
+    /**
+     * 单个字段全文检索 Operator 查询
+     * 文档：https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html
+     */
+    @Test
+    public void matchQueryOperatorTest() throws IOException {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        //Java 和初级必须同时出现
+        searchSourceBuilder.query(QueryBuilders.matchQuery("name", "Java 初级").operator(Operator.AND));
+        //searchSourceBuilder.query(QueryBuilders.matchQuery("name", "Java 初级").operator(Operator.OR));
+        SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
+        searchRequest.source(searchSourceBuilder);
+
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        SearchHits hits = searchResponse.getHits();
+        for (SearchHit hit : hits) {
+            String id = hit.getId();
+            log.info("id:{} ,sourceAsString:{}", id, hit.getSourceAsString());
+        }
+
+
+    }
+
+    /**
+     * 必须指定顺序搜索
+     */
+    @Test
+    public void matchPhraseQueryTest() throws IOException {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        //Java 指定顺序搜索
+        searchSourceBuilder.query(QueryBuilders.matchPhraseQuery("name", "Java 初级"));
+        //searchSourceBuilder.query(QueryBuilders.matchPhraseQuery("name", "Java 开发").slop(1));
+        SearchRequest searchRequest = new SearchRequest("zhuoqianmingyue_test");
+        searchRequest.source(searchSourceBuilder);
+
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        SearchHits hits = searchResponse.getHits();
+        for (SearchHit hit : hits) {
+            String id = hit.getId();
+            log.info("id:{} ,sourceAsString:{}", id, hit.getSourceAsString());
+        }
+    }
+
     /**
      * 多个字段全文检索
      * 文档：https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-multi-match-query.html
      */
     @Test
-    public void multiQueryQueryTest() throws IOException {
+    public void multiMatchQueryTest() throws IOException {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.multiMatchQuery("Java", "name", "description"));
 

@@ -61,24 +61,24 @@ public class RestHighLevelClientIndexApiTest {
      * 添加索引库
      * 文档 https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html
      *
-     * PUT /索引名称
-     * {
-     *   "settings": {
-     *     "number_of_shards": 1
-     *   },
-     *   "mappings": {
-     *     "properties": {
-     *       "field1": { "type": "text" }
-     *     }
-     *   }
-     * }
+      PUT /索引名称
+      {
+        "settings": {
+          "number_of_shards": 1
+        },
+        "mappings": {
+          "properties": {
+            "field1": { "type": "text" }
+          }
+        }
+      }
      */
     @Test
     public void addIndexTest() throws IOException {
         //添加索引库
-        CreateIndexRequest request = new CreateIndexRequest("imooc_test");
+        CreateIndexRequest request = new CreateIndexRequest("zhuoqianmingyue_test");
         //设置分片 和副本
-        request.settings(Settings.builder().put("number_of_shards", "1").put("number_of_replicas", "1"));
+        request.settings(Settings.builder().put("number_of_shards", "1").put("number_of_replicas", "0"));
         //设置Mapping
         // 创建映射
         request.mapping( "{\n" +
@@ -131,7 +131,7 @@ public class RestHighLevelClientIndexApiTest {
      */
     @Test
     public void deleteIndexTest() throws IOException {
-        DeleteIndexRequest request = new DeleteIndexRequest("imooc_test");
+        DeleteIndexRequest request = new DeleteIndexRequest("zhuoqianmingyue_test");
         AcknowledgedResponse delete = restHighLevelClient.indices().delete(request, RequestOptions.DEFAULT);
         boolean acknowledged = delete.isAcknowledged();
         Assert.assertTrue(acknowledged);

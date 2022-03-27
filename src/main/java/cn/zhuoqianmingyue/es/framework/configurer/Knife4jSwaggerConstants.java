@@ -10,7 +10,7 @@ public final class Knife4jSwaggerConstants {
     private Knife4jSwaggerConstants() {throw new IllegalStateException("Utility class");}
 
     public static final String SYSTEM_GROUP_NAME = "Monkey 系统管理接口";
-    public static final String SYSTEM_GROUP_PACKAGE = "cn.zhuoqianmingyue.es";
+    public static final String SYSTEM_GROUP_PACKAGE = "com.company.project";
     public static final String SYSTEM_API_INFO_CONTACT_URL = "localhost:8080";
     public static final String SYSTEM_API_INFO_CONTACT_EMAIL = "ljk126wy@126.com";
     public static final String SYSTEM_API_INFO_CONTACT_NAME = "zhuoqianmingyue";
