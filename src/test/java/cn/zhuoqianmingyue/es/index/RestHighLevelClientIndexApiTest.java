@@ -76,39 +76,47 @@ public class RestHighLevelClientIndexApiTest {
     @Test
     public void addIndexTest() throws IOException {
         //添加索引库
-        CreateIndexRequest request = new CreateIndexRequest("zhuoqianmingyue_test");
+        CreateIndexRequest request = new CreateIndexRequest("imooc_test");
         //设置分片 和副本
-        request.settings(Settings.builder().put("number_of_shards", "1").put("number_of_replicas", "0"));
+        request.settings(Settings.builder().put("number_of_shards", "1").put("number_of_replicas", "1"));
         //设置Mapping
         // 创建映射
         request.mapping( "{\n" +
-                "                \"properties\": {\n" +
-                "                    \"description\": {\n" +
-                "                        \"type\": \"text\",\n" +
-                "                        \"analyzer\": \"ik_max_word\",\n" +
-                "                        \"search_analyzer\": \"ik_smart\"\n" +
-                "                    },\n" +
-                "                    \"name\": {\n" +
-                "                        \"type\": \"text\",\n" +
-                "                        \"analyzer\": \"ik_max_word\",\n" +
-                "                        \"search_analyzer\": \"ik_smart\"\n" +
-                "                    },\n" +
-                "\"pic\":{                    \n" +
-                "\"type\":\"text\",                        \n" +
-                "\"index\":false                        \n" +
-                "},                    \n" +
-                "                    \"price\": {\n" +
-                "                        \"type\": \"float\"\n" +
-                "                    },\n" +
-                "                    \"studymodel\": {\n" +
-                "                        \"type\": \"keyword\"\n" +
-                "                    },\n" +
-                "                    \"create_date\": {\n" +
-                "                        \"type\": \"date\",\n" +
-                "                        \"format\": \"yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||yyyy-MM-dd'T'HH:mm:ss+0800\"\n" +
-                "                    }\n" +
-                "                }\n" +
-                "            }", XContentType.JSON);
+                "  \"properties\": {\n" +
+                "    \"description\": {\n" +
+                "      \"type\": \"text\",\n" +
+                "      \"analyzer\": \"ik_max_word\",\n" +
+                "      \"search_analyzer\": \"ik_smart\"\n" +
+                "    },\n" +
+                "    \"name\": {\n" +
+                "      \"type\": \"text\",\n" +
+                "      \"analyzer\": \"ik_max_word\",\n" +
+                "      \"search_analyzer\": \"ik_smart\"\n" +
+                "    },\n" +
+                "    \"pic\": {\n" +
+                "      \"type\": \"text\",\n" +
+                "      \"index\": false\n" +
+                "    },\n" +
+                "    \"price\": {\n" +
+                "      \"type\": \"double\"\n" +
+                "    },\n" +
+                "    \"studymodel\": {\n" +
+                "      \"type\": \"keyword\"\n" +
+                "    },\n" +
+                "    \"teachers\" : {\n" +
+                "      \"type\" : \"text\",\n" +
+                "      \"fields\" : {\n" +
+                "        \"keyword\" : {\n" +
+                "          \"type\" : \"keyword\"\n" +
+                "        }\n" +
+                "      }\n" +
+                "    },\n" +
+                "    \"create_date\": {\n" +
+                "      \"type\": \"date\",\n" +
+                "      \"format\": \"yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||yyyy-MM-dd'T'HH:mm:ss+0800\"\n" +
+                "    }\n" +
+                "  }\n" +
+                "}", XContentType.JSON);
 
         CreateIndexResponse createIndexResponse = restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);
         boolean acknowledged = createIndexResponse.isAcknowledged();
@@ -123,9 +131,11 @@ public class RestHighLevelClientIndexApiTest {
      */
     @Test
     public void deleteIndexTest() throws IOException {
-        DeleteIndexRequest request = new DeleteIndexRequest("zhuoqianmingyue_test");
+        DeleteIndexRequest request = new DeleteIndexRequest("imooc_test");
         AcknowledgedResponse delete = restHighLevelClient.indices().delete(request, RequestOptions.DEFAULT);
         boolean acknowledged = delete.isAcknowledged();
         Assert.assertTrue(acknowledged);
     }
+
+
 }

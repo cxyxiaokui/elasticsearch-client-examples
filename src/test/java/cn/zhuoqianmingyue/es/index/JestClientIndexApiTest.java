@@ -43,14 +43,14 @@ public class JestClientIndexApiTest {
      */
     @Test
     public void queryIndexTest() throws IOException {
-        Cat cat = new Cat.IndicesBuilder().addIndex("zhuoqianmingyue_test").build();
+        Cat cat = new Cat.IndicesBuilder().addIndex("imooc_test").build();
         JestResult jestResult = jestClient.execute(cat);
 
-        GetMapping getMapping = new GetMapping.Builder().addIndex("zhuoqianmingyue_test").build();
+        GetMapping getMapping = new GetMapping.Builder().addIndex("imooc_test").build();
         JestResult resultMapping = jestClient.execute(getMapping);
         Assert.assertTrue(resultMapping.isSucceeded());
 
-        JestResult jestResultSetting = jestClient.execute(new GetSettings.Builder().addIndex("zhuoqianmingyue_test").build());
+        JestResult jestResultSetting = jestClient.execute(new GetSettings.Builder().addIndex("imooc_test").build());
         Assert.assertTrue(jestResultSetting.isSucceeded());
     }
 
@@ -73,37 +73,45 @@ public class JestClientIndexApiTest {
     @Test
     public void addIndexTest() throws IOException {
         String mapping = "{\n" +
-                "                \"properties\": {\n" +
-                "                    \"description\": {\n" +
-                "                        \"type\": \"text\",\n" +
-                "                        \"analyzer\": \"ik_max_word\",\n" +
-                "                        \"search_analyzer\": \"ik_smart\"\n" +
-                "                    },\n" +
-                "                    \"name\": {\n" +
-                "                        \"type\": \"text\",\n" +
-                "                        \"analyzer\": \"ik_max_word\",\n" +
-                "                        \"search_analyzer\": \"ik_smart\"\n" +
-                "                    },\n" +
-                "\"pic\":{                    \n" +
-                "\"type\":\"text\",                        \n" +
-                "\"index\":false                        \n" +
-                "},                    \n" +
-                "                    \"price\": {\n" +
-                "                        \"type\": \"float\"\n" +
-                "                    },\n" +
-                "                    \"studymodel\": {\n" +
-                "                        \"type\": \"keyword\"\n" +
-                "                    },\n" +
-                "                    \"create_date\": {\n" +
-                "                        \"type\": \"date\",\n" +
-                "                        \"format\": \"yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||yyyy-MM-dd'T'HH:mm:ss+0800\"\n" +
-                "                    }\n" +
-                "                }\n" +
-                "            }";
+                "  \"properties\": {\n" +
+                "    \"description\": {\n" +
+                "      \"type\": \"text\",\n" +
+                "      \"analyzer\": \"ik_max_word\",\n" +
+                "      \"search_analyzer\": \"ik_smart\"\n" +
+                "    },\n" +
+                "    \"name\": {\n" +
+                "      \"type\": \"text\",\n" +
+                "      \"analyzer\": \"ik_max_word\",\n" +
+                "      \"search_analyzer\": \"ik_smart\"\n" +
+                "    },\n" +
+                "    \"pic\": {\n" +
+                "      \"type\": \"text\",\n" +
+                "      \"index\": false\n" +
+                "    },\n" +
+                "    \"price\": {\n" +
+                "      \"type\": \"double\"\n" +
+                "    },\n" +
+                "    \"studymodel\": {\n" +
+                "      \"type\": \"keyword\"\n" +
+                "    },\n" +
+                "    \"teachers\" : {\n" +
+                "      \"type\" : \"text\",\n" +
+                "      \"fields\" : {\n" +
+                "        \"keyword\" : {\n" +
+                "          \"type\" : \"keyword\"\n" +
+                "        }\n" +
+                "      }\n" +
+                "    },\n" +
+                "    \"create_date\": {\n" +
+                "      \"type\": \"date\",\n" +
+                "      \"format\": \"yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||yyyy-MM-dd'T'HH:mm:ss+0800\"\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
 
         String settings = Settings.builder().put("number_of_shards", "1").put("number_of_replicas", "0").build().toString();
 
-        CreateIndex createIndex = new CreateIndex.Builder("zhuoqianmingyue_test").settings(settings).mappings(mapping).build();
+        CreateIndex createIndex = new CreateIndex.Builder("imooc_test").settings(settings).mappings(mapping).build();
         JestResult jestResult = jestClient.execute(createIndex);
         Assert.assertTrue(jestResult.isSucceeded());
     }
@@ -117,7 +125,7 @@ public class JestClientIndexApiTest {
      */
     @Test
     public void deleteIndexTest() throws IOException {
-        JestResult jestResult = jestClient.execute(new DeleteIndex.Builder("zhuoqianmingyue_test").build());
+        JestResult jestResult = jestClient.execute(new DeleteIndex.Builder("imooc_test").build());
         Assert.assertTrue(jestResult.isSucceeded());
     }
 }
